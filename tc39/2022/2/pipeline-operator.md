@@ -1,4 +1,4 @@
-# 2022/2/15 TC39 Pipeline operator
+TC39 Pipeline operator
 
 - https://github.com/tc39/proposal-pipeline-operator
 
@@ -91,4 +91,68 @@ Pipeline Operator、文じゃなくて式で表されてるってのも汎用性
     https://github.com/tc39/proposal-smart-pipelines
 
 
+# 2022/2/22 Pipeline operator
+
+この会の続き
+https://hackmd.io/Y9KpaTJeR0qwMDKVCZnc7w
+
+https://www.kabuku.co.jp/developers/pipe-operator-debate
+
+F# style か Hack styleか
+
+F# pipe + partial application = Hack pipe
+
+https://benlesh.com/posts/tc39-pipeline-proposal-hack-vs-f-sharp/
+
+
+現在のJavaScriptで実装できるpipe
+```javascript=
+function pipe(initialArg, ...fns) {
+  return fns.reduce((prevValue, fn) => fn(prevValue), initialArg);
+}
+
+const result = pipe(
+  2,
+  (x) => x ** 2,
+  (x) => x - 1,
+);
+```
+
+## RxJSでの例
+
+RxJS だと, 昔 (v5.5以前) はモナド的にmethod chainを使っていた.
+これは問題があって
+- 先週やったようにyeildや算術演算式を格納できない
+- tree shakingが効かない
+
+というのがある. methodだと, (swcとかだと多分いけるけど)メソッドが使われているかの検査ができず全てのメソッドがバンドルに残ってしまう. それを避けるために piped functionを使ってパフォーマンスの最適化を図った.
+
+## Hack pipe (current)
+
+`^` に返り値が入るようにする.
+
+```javascript=
+// An example of using existing non-unary function APIs:
+const randomNumberBetween20And50 = Math.random() * 100
+  |> Math.pow(^, 2)
+  |> Math.min(^, 50)
+  |> Math.max(20, ^)
+```
+
+F#との違いは
+- ^
+- より愚直
+
+Hack pipeの方がparserの対応が大変そう (^がある分)
+- accorn の対応を待ってさらにlinter, bundler, transplierのその依存のアップデートを待たないといけない
+- webpack4 の optional chaining や nullish coallesing がaccornが古くて使えない問題とかもあるし...
+
+```javascript=
+// F# await
+const hoge = hoge()
+  |> (hoge) => await bar(hoge)
+              ~~~~~~~ oops!
+```
+
+optional hack pipe も考えられ中(?)
 
